@@ -1,0 +1,60 @@
+// mobile/app.config.js
+export default {
+  expo: {
+    name: "mobile",
+    slug: "mobile",
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "./assets/icon.png",
+    userInterfaceStyle: "light",
+    newArchEnabled: true,
+    splash: {
+      image: "./assets/splash-icon.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff"
+    },
+    ios: {
+      supportsTablet: true,
+      infoPlist: {
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to find nearby addresses and show your current location on the map.",
+        "NSLocationAlwaysUsageDescription": "This app uses your location to provide better address suggestions and map features.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app uses your location to provide accurate address suggestions and map functionality."
+      },
+      bundleIdentifier: "com.anonymous.mobile"
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: "./assets/adaptive-icon.png",
+        backgroundColor: "#ffffff"
+      },
+      edgeToEdgeEnabled: true,
+      package: "com.anonymous.mobile",
+      permissions: [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      config: {
+        googleMaps: {
+          apiKey: process.env.GOOGLE_MAP_API_KEY
+        }
+      }
+    },
+    web: {
+      favicon: "./assets/favicon.png"
+    },
+    plugins: [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
+    ],
+    extra: {
+      apiUrl: process.env.API_URL || "http://192.168.1.9:5000/api",
+      googleMapsApiKey: process.env.GOOGLE_MAP_API_KEY
+    }
+  }
+};
