@@ -1,0 +1,68 @@
+# Create the .gitignore file
+cat > .gitignore << 'EOF'
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+.next/
+dist/
+build/
+*.tgz
+*.tar.gz
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+bash.exe.stackdump
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory
+coverage/
+
+# Logs
+logs/
+*.log
+
+# Mobile app specific
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/*.log
+
+# Frontend build cache
+frontend/.next/
+frontend/out/
+
+# Backend uploads (keep the folder but not contents)
+uploads/*
+!uploads/.gitkeep
+
+# Next.js build
+.next/
+out/
+
+# Production builds
+build/
+dist/
+EOF
