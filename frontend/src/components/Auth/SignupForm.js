@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle, MapPin, Navigation, Search } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, MapPin, Navigation, Search, Phone } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
@@ -11,6 +11,7 @@ export const SignupForm = ({ onSwitchToLogin }) => {
     password: '',
     confirmPassword: '',
     displayName: '',
+    phone: '',
     role: 'donor',
     location: {
       address: '',
@@ -316,6 +317,7 @@ export const SignupForm = ({ onSwitchToLogin }) => {
         email: formData.email,
         password: formData.password,
         displayName: formData.displayName.trim(),
+        phone: formData.phone.trim(),
         role: formData.role
       };
 
@@ -328,15 +330,9 @@ export const SignupForm = ({ onSwitchToLogin }) => {
       
       console.log('✅ SignupForm: Registration successful!', response);
       
-      const tokenAfterSignup = Cookies.get('auth_token');
-      const userAfterSignup = Cookies.get('user');
-      
-      console.log('🍪 Token after signup:', tokenAfterSignup ? 'PRESENT' : 'MISSING');
-      console.log('🍪 User after signup:', userAfterSignup ? 'PRESENT' : 'MISSING');
-      
-      if (!tokenAfterSignup) {
-        throw new Error('Authentication token not set after registration');
-      }
+      // Verify auth data was saved to localStorage
+      const storedData = localStorage.getItem('auth_token');
+      console.log('💾 Token after signup:', storedData ? 'PRESENT' : 'MISSING');
       
       toast.success('Account created successfully!');
       
@@ -410,6 +406,36 @@ export const SignupForm = ({ onSwitchToLogin }) => {
             <div className="flex items-center mt-2 text-sm text-red-600">
               <AlertCircle className="h-4 w-4 mr-1" />
               {errors.displayName}
+            </div>
+          )}
+        </div>
+
+        {/* Phone Number Field */}
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+            Mobile Number
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Phone className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="Enter your mobile number"
+              disabled={loading}
+            />
+          </div>
+          {errors.phone && (
+            <div className="flex items-center mt-2 text-sm text-red-600">
+              <AlertCircle className="h-4 w-4 mr-1" />
+              {errors.phone}
             </div>
           )}
         </div>

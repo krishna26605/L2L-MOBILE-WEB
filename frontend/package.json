@@ -11,21 +11,24 @@
     "export": "next export"
   },
   "dependencies": {
+    "axios": "^1.6.2",
+    "html5-qrcode": "^2.3.8",
+    "js-cookie": "^3.0.5",
+    "lucide-react": "^0.344.0",
     "next": "^14.0.4",
+    "peerjs": "^1.5.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "lucide-react": "^0.344.0",
-    "axios": "^1.6.2",
     "react-hot-toast": "^2.4.1",
     "react-query": "^3.39.3",
-    "js-cookie": "^3.0.5"
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.16",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.0.4",
-    "tailwindcss": "^3.4.0",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32"
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0"
   },
   "keywords": [
     "nextjs",

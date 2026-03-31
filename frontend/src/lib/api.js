@@ -162,4 +162,34 @@ export const uploadAPI = {
   deleteImage: (fileName) => api.delete(`/upload/image/${fileName}`),
 };
 
+// Chat API
+export const chatAPI = {
+  getMessages: (donationId) => api.get(`/chat/${donationId}`),
+  sendMessage: (donationId, content) => api.post(`/chat/${donationId}`, { content }),
+  getUnreadCount: () => api.get('/chat/unread'),
+};
+
+// Verification API
+export const verificationAPI = {
+  getStatus: (code) => api.get(`/verify/${code}`),
+  verify: (code) => api.post(`/verify/${code}`),
+};
+
+// Calls API
+export const callsAPI = {
+  requestCall: (donationId, peerId) => api.post('/calls/request', { donationId, peerId }),
+  getPendingCalls: () => api.get('/calls/pending'),
+  acceptCall: (callId, peerId) => api.post(`/calls/${callId}/accept`, { peerId }),
+  rejectCall: (callId) => api.post(`/calls/${callId}/reject`),
+  endCall: (callId) => api.post(`/calls/${callId}/end`),
+};
+
+// Alerts API
+export const alertsAPI = {
+  getActive: () => api.get('/alerts/active'),
+  create: (data) => api.post('/alerts', data),
+  getMyAlerts: () => api.get('/alerts/my-alerts'),
+  resolve: (id) => api.post(`/alerts/${id}/resolve`),
+};
+
 export default api;

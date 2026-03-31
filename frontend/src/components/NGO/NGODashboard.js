@@ -1,12 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { Map, List, Navigation, Heart, Package, TrendingUp, Route, MapPin, Settings, RefreshCw } from 'lucide-react';
+import { Map, List, Navigation, Heart, Package, TrendingUp, Route, MapPin, Settings, RefreshCw, MessageCircle, Video, AlertTriangle, QrCode } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { donationsAPI } from '../../lib/api';
+import { donationsAPI, callsAPI } from '../../lib/api';
+import { getSocket } from '../../lib/socket';
 import { Navbar } from '../Layout/Navbar';
 import { FoodMap } from './FoodMap';
 import { DonationListItem } from './DonationListItem';
 import { MultiLocationSelector } from './MultiLocationSelector';
 import { RouteTracker } from './RouteTracker';
+import { ChatWindow } from '../Chat/ChatWindow';
+import { QRScanner } from '../QRScanner/QRScanner';
+import { EmergencyAlertForm } from '../Alert/EmergencyAlertForm';
+import { useNotifications } from '../../hooks/useNotifications';
+import { Badge } from '../Common/Badge';
 import toast from 'react-hot-toast';
 
 // Radius Update Modal Component
@@ -111,6 +117,10 @@ export const NGODashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const refreshIntervalRef = useRef(null);
   const prevDonationsRef = useRef([]);
+  const [chatDonation, setChatDonation] = useState(null);
+  const { getUnreadCount } = useNotifications();
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [showEmergencyForm, setShowEmergencyForm] = useState(false);
 
   // Distance calculation function (Haversine formula)
   const calculateDistance = (lat1, lng1, lat2, lng2) => {
@@ -537,7 +547,7 @@ export const NGODashboard = () => {
 
   const toggleAutoRefresh = () => {
     setAutoRefresh(!autoRefresh);
-    toast.info(!autoRefresh ? 'Auto-refresh enabled (30s)' : 'Auto-refresh disabled');
+    toast(!autoRefresh ? 'Auto-refresh enabled (30s)' : 'Auto-refresh disabled');
   };
 
   // Stats calculation
@@ -679,12 +689,21 @@ export const NGODashboard = () => {
                 <span>Radius ({currentRadius}km)</span>
               </button>
             )}
-            {/* Debug Button */}
+            {/* Emergency Alert Button */}
             <button
-              onClick={debugCurrentState}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+              onClick={() => setShowEmergencyForm(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
             >
-              <span>Debug State</span>
+              <AlertTriangle className="h-4 w-4" />
+              <span>Emergency Alert</span>
+            </button>
+            {/* QR Scanner Button */}
+            <button
+              onClick={() => setShowQRScanner(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            >
+              <QrCode className="h-4 w-4" />
+              <span>Scan QR</span>
             </button>
           </div>
 
@@ -806,12 +825,50 @@ export const NGODashboard = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredDonations.map((donation) => (
-                    <DonationListItem
-                      key={donation._id}
-                      donation={donation}
-                      onClaim={handleClaimDonation}
-                      onViewRoute={handleViewRoute}
-                    />
+                    <div key={donation._id}>
+                      <DonationListItem
+                        donation={donation}
+                        onClaim={handleClaimDonation}
+                        onViewRoute={handleViewRoute}
+                      />
+                      {/* Chat & Call buttons for claimed donations */}
+                      {donation.status === 'claimed' && (
+                        <div className="mt-2 flex space-x-2">
+                          <button
+                            onClick={() => setChatDonation(donation)}
+                            className="flex-1 flex items-center justify-center space-x-1 bg-blue-50 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium relative"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                            <span>Chat with Donor</span>
+                            <Badge 
+                              count={getUnreadCount(donation._id)} 
+                              className="absolute -top-1 -right-1"
+                            />
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const res = await callsAPI.requestCall(donation._id);
+                                const socket = getSocket();
+                                if (socket) {
+                                  socket.emit('call-request', {
+                                    receiverId: donation.donorId?._id || donation.donorId,
+                                    callRequest: res.data.callRequest
+                                  });
+                                }
+                                toast.success('Video call request sent!');
+                              } catch (err) {
+                                toast.error(err.response?.data?.error || 'Failed to request call');
+                              }
+                            }}
+                            className="flex-1 flex items-center justify-center space-x-1 bg-purple-50 text-purple-700 py-2 px-3 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
+                          >
+                            <Video className="h-4 w-4" />
+                            <span>Video Call</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -876,6 +933,38 @@ export const NGODashboard = () => {
           onClose={() => setShowRadiusUpdate(false)}
           currentRadius={currentRadius}
           onUpdate={handleRadiusUpdate}
+        />
+      )}
+
+      {/* Chat Modal */}
+      {chatDonation && (
+        <ChatWindow
+          donation={chatDonation}
+          otherPartyName={chatDonation.donorName || 'Donor'}
+          onClose={() => setChatDonation(null)}
+        />
+      )}
+
+      {/* QR Scanner Modal */}
+      {showQRScanner && (
+        <QRScanner
+          onClose={() => setShowQRScanner(false)}
+          onVerified={(donation) => {
+            setShowQRScanner(false);
+            fetchAllDonations(false);
+            fetchMyDonations();
+          }}
+        />
+      )}
+
+      {/* Emergency Alert Form */}
+      {showEmergencyForm && (
+        <EmergencyAlertForm
+          onClose={() => setShowEmergencyForm(false)}
+          onSuccess={() => {
+            setShowEmergencyForm(false);
+          }}
+          userLocation={user?.location}
         />
       )}
     </div>

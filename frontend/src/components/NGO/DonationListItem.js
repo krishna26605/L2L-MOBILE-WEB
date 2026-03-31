@@ -9,39 +9,39 @@ export const DonationListItem = ({ donation, onClaim, onViewRoute }) => {
   // ✅ useEffect mein image URL process karo
   useEffect(() => {
     // In the useEffect of DonationListItem.js, update the processImageUrl function:
-const processImageUrl = (url) => {
-  if (!url) return '';
-  
-  console.log('🖼️ NGO Dashboard - Original image URL:', url);
-  
-  // ✅ Case 1: If it's already a full backend URL, use it directly
-  if (url.includes('localhost:5000/uploads')) {
-    console.log('✅ Already correct backend URL');
-    return url;
-  }
-  
-  // ✅ Case 2: If it contains frontend URL, replace with backend URL
-  if (url.includes('localhost:3000/api/uploads')) {
-    const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    const correctedUrl = url.replace('http://localhost:3000/api/uploads', `${backendUrl}/uploads`);
-    console.log('🔄 Fixed frontend URL to backend:', correctedUrl);
-    return correctedUrl;
-  }
-  
-  // ✅ Case 3: If it's just a filename or relative path
-  if (url.startsWith('/uploads/') || !url.includes('://')) {
-    const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    // Remove any leading slash to avoid double slashes
-    const cleanPath = url.startsWith('/') ? url.substring(1) : url;
-    const fullUrl = `${backendUrl}/${cleanPath}`;
-    console.log('✅ Built full backend URL:', fullUrl);
-    return fullUrl;
-  }
-  
-  // ✅ Case 4: Return as-is (might be external URL)
-  console.log('⚠️ Unknown URL format, using as-is:', url);
-  return url;
-};
+    const processImageUrl = (url) => {
+      if (!url) return '';
+
+      console.log('🖼️ NGO Dashboard - Original image URL:', url);
+
+      // ✅ Case 1: If it's already a full backend URL, use it directly
+      if (url.includes('localhost:5000/uploads')) {
+        console.log('✅ Already correct backend URL');
+        return url;
+      }
+
+      // ✅ Case 2: If it contains frontend URL, replace with backend URL
+      if (url.includes('localhost:3000/api/uploads')) {
+        const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const correctedUrl = url.replace('http://localhost:3000/api/uploads', `${backendUrl}/uploads`);
+        console.log('🔄 Fixed frontend URL to backend:', correctedUrl);
+        return correctedUrl;
+      }
+
+      // ✅ Case 3: If it's just a filename or relative path
+      if (url.startsWith('/uploads/') || !url.includes('://')) {
+        const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        // Remove any leading slash to avoid double slashes
+        const cleanPath = url.startsWith('/') ? url.substring(1) : url;
+        const fullUrl = `${backendUrl}/${cleanPath}`;
+        console.log('✅ Built full backend URL:', fullUrl);
+        return fullUrl;
+      }
+
+      // ✅ Case 4: Return as-is (might be external URL)
+      console.log('⚠️ Unknown URL format, using as-is:', url);
+      return url;
+    };
 
     setImageUrl(processImageUrl(donation.imageUrl));
   }, [donation.imageUrl]);
@@ -94,14 +94,13 @@ const processImageUrl = (url) => {
           <img
             src={imageUrl}
             alt={donation.title}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
             onError={handleImageError}
             onLoad={handleImageLoad}
             loading="lazy"
           />
-          
+
           {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
@@ -130,7 +129,7 @@ const processImageUrl = (url) => {
               Failed to load image
             </p>
           )}
-          
+
           <div className={`absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(donation.status)}`}>
             {getStatusIcon(donation.status)}
             <span className="capitalize">{donation.status}</span>
@@ -156,12 +155,12 @@ const processImageUrl = (url) => {
             <Package className="h-4 w-4 mr-2" />
             <span>{donation.quantity} • {donation.foodType}</span>
           </div>
-          
+
           <div className="flex items-center text-sm text-gray-600">
             <MapPin className="h-4 w-4 mr-2" />
             <span className="truncate">{donation.location?.address || 'Address not specified'}</span>
           </div>
-          
+
           <div className="flex items-center text-sm text-gray-600">
             <Clock className="h-4 w-4 mr-2" />
             <span>Expires: {formatDate(donation.expiryTime)}</span>
@@ -170,9 +169,8 @@ const processImageUrl = (url) => {
 
         {donation.status === 'available' && (
           <div className="mb-4">
-            <div className={`text-sm font-medium ${
-              isExpired ? 'text-red-600' : 'text-orange-600'
-            }`}>
+            <div className={`text-sm font-medium ${isExpired ? 'text-red-600' : 'text-orange-600'
+              }`}>
               {isExpired ? 'Expired' : `Expires in ${timeUntilExpiry}`}
             </div>
           </div>
@@ -182,7 +180,7 @@ const processImageUrl = (url) => {
           <div className="text-xs text-gray-500">
             Posted {formatDate(donation.createdAt)}
           </div>
-          
+
           <div className="flex space-x-2">
             <button
               onClick={() => onViewRoute(donation)}
@@ -191,7 +189,7 @@ const processImageUrl = (url) => {
               <Navigation className="h-4 w-4" />
               <span>Directions</span>
             </button>
-            
+
             {donation.status === 'available' && (
               <button
                 onClick={() => onClaim(donation)}
@@ -206,7 +204,7 @@ const processImageUrl = (url) => {
         {/* Debug info */}
         {process.env.NODE_ENV === 'development' && donation.imageUrl && (
           <div>
-            <p><strong>Debug Image Info:</strong></p>
+            {/* <p><strong>Debug Image Info:</strong></p>
             <p><strong>DB URL:</strong> {donation.imageUrl}</p>
             <p><strong>Processed:</strong> {imageUrl}</p>
             <p><strong>Status:</strong> {imageLoaded ? '✅ Loaded' : imageError ? '❌ Error' : '⏳ Loading'}</p>
@@ -215,7 +213,7 @@ const processImageUrl = (url) => {
               className="mt-1 text-blue-600 underline text-xs"
             >
               Test URL in new tab
-            </button>
+            </button> */}
           </div>
         )}
       </div>

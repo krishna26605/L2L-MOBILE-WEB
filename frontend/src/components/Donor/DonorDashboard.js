@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Plus, Package, TrendingUp, Clock, RefreshCw } from 'lucide-react';
+import { Plus, Package, TrendingUp, Clock, RefreshCw, MessageCircle, Phone, Video } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { donationsAPI } from '../../lib/api';
+import { donationsAPI, callsAPI } from '../../lib/api';
+import { getSocket } from '../../lib/socket';
 import { Navbar } from '../Layout/Navbar';
 import { PostFoodForm } from './PostFoodForm';
 import { DonationCard } from './DonationCard';
+import { ChatWindow } from '../Chat/ChatWindow';
+import { AlertBanner } from '../Alert/AlertBanner';
+import { useNotifications } from '../../hooks/useNotifications';
+import { Badge } from '../Common/Badge';
 import toast from 'react-hot-toast';
 
 export const DonorDashboard = () => {
@@ -14,6 +19,8 @@ export const DonorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [chatDonation, setChatDonation] = useState(null);
+  const { getUnreadCount } = useNotifications();
 
   useEffect(() => {
     if (!user) return;
@@ -28,9 +35,7 @@ export const DonorDashboard = () => {
         setRefreshing(true);
       }
       setError(null);
-      console.log('📊 Fetching donations for user:', user._id);
       const response = await donationsAPI.getAll({ donorId: user._id });
-      console.log('✅ Donations fetched:', response.data);
       setDonations(response.data.donations || []);
     } catch (error) {
       console.error('❌ Error fetching donations:', error);
@@ -43,29 +48,46 @@ export const DonorDashboard = () => {
   };
 
   const handlePostSuccess = (newDonation) => {
-    console.log('🎉 New donation posted successfully:', newDonation);
-    
-    // ✅ OPTIMISTIC UPDATE: Add new donation to the beginning of the list immediately
     if (newDonation) {
       setDonations(prev => [newDonation, ...prev]);
     } else {
-      // If no newDonation data provided, refresh the list
       fetchDonations(false);
     }
-    
-    // ✅ Show success message
-    toast.success('🎉 Donation posted successfully! NGOs near you will be notified.', {
-      duration: 4000,
-      icon: '✅'
-    });
-    
-    // ✅ Close the form
+    toast.success('🎉 Donation posted successfully!', { duration: 4000 });
     setShowPostForm(false);
   };
 
   const handleRefresh = () => {
     fetchDonations(false);
     toast.success('Donations list refreshed!');
+  };
+
+  const handleCall = (donation) => {
+    if (donation.claimedBy && donation.claimedBy.phone) {
+      window.open(`tel:${donation.claimedBy.phone}`, '_self');
+    } else {
+      toast.error('Phone number not available');
+    }
+  };
+
+  const handleVideoCall = async (donation) => {
+    if (!donation.claimedBy) {
+      toast.error('No NGO has claimed this donation yet');
+      return;
+    }
+    try {
+      const response = await callsAPI.requestCall(donation._id);
+      const socket = getSocket();
+      if (socket) {
+        socket.emit('call-request', {
+          receiverId: typeof donation.claimedBy === 'object' ? donation.claimedBy._id : donation.claimedBy,
+          callRequest: response.data.callRequest
+        });
+      }
+      toast.success('Video call request sent! Waiting for NGO to accept...');
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to request call');
+    }
   };
 
   const stats = {
@@ -96,10 +118,7 @@ export const DonorDashboard = () => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-red-600 mb-4">{error}</p>
-            <button
-              onClick={fetchDonations}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            >
+            <button onClick={fetchDonations} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
               Try Again
             </button>
           </div>
@@ -113,7 +132,10 @@ export const DonorDashboard = () => {
       <Navbar title="Donor Dashboard" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header with Refresh Button */}
+        {/* Emergency Alerts Banner */}
+        <AlertBanner />
+
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Donor Dashboard</h1>
@@ -194,7 +216,7 @@ export const DonorDashboard = () => {
               <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-medium text-gray-900 mb-2">No donations yet</h3>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Start making a difference by posting your first food donation. Help reduce food waste and feed those in need.
+                Start making a difference by posting your first food donation.
               </p>
               <button
                 onClick={() => setShowPostForm(true)}
@@ -206,11 +228,35 @@ export const DonorDashboard = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {donations.map((donation) => (
-                <DonationCard 
-                  key={donation._id} 
-                  donation={donation}
-                  onUpdate={fetchDonations}
-                />
+                <div key={donation._id} className="relative">
+                  <DonationCard 
+                    donation={donation}
+                    onUpdate={fetchDonations}
+                  />
+                  {/* Communication buttons for claimed donations */}
+                  {donation.status === 'claimed' && (
+                    <div className="mt-2 flex space-x-2">
+                      <button
+                        onClick={() => setChatDonation(donation)}
+                        className="flex-1 flex items-center justify-center space-x-1 bg-blue-50 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium relative"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        <span>Chat</span>
+                        <Badge 
+                          count={getUnreadCount(donation._id)} 
+                          className="absolute -top-1 -right-1"
+                        />
+                      </button>
+                      <button
+                        onClick={() => handleVideoCall(donation)}
+                        className="flex-1 flex items-center justify-center space-x-1 bg-purple-50 text-purple-700 py-2 px-3 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
+                      >
+                        <Video className="h-4 w-4" />
+                        <span>Video</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -222,6 +268,15 @@ export const DonorDashboard = () => {
         <PostFoodForm
           onClose={() => setShowPostForm(false)}
           onSuccess={handlePostSuccess}
+        />
+      )}
+
+      {/* Chat Modal */}
+      {chatDonation && (
+        <ChatWindow
+          donation={chatDonation}
+          otherPartyName={chatDonation.claimedByName || 'NGO'}
+          onClose={() => setChatDonation(null)}
         />
       )}
     </div>
