@@ -13,7 +13,7 @@ export const authController = {
   // Register a new user
   async register(req, res) {
     try {
-      const { email, password, displayName, role, location, ngoDetails } = req.body;
+      const { email, password, displayName, phone, role, location, ngoDetails } = req.body;
 
       console.log('📝 Registration attempt:', { email, role, location });
 
@@ -52,6 +52,7 @@ export const authController = {
         email,
         password,
         displayName,
+        phone: phone || '',
         role
       };
 

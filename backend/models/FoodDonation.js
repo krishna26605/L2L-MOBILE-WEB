@@ -101,6 +101,14 @@ const foodDonationSchema = new mongoose.Schema({
   imageUrl: {
     type: String,
     default: null
+  },
+  verificationCode: {
+    type: String,
+    default: null
+  },
+  verifiedAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true

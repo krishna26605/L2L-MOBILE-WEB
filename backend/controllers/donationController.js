@@ -3,6 +3,9 @@
 import { FoodDonation } from '../models/FoodDonation.js';
 import { User } from '../models/User.js';
 import { ClaimRequest } from '../models/ClaimRequest.js';
+import { generateVerificationCode, generateQRCode } from '../utils/qrService.js';
+import { sendClaimNotificationEmail } from '../utils/emailService.js';
+
 
 export const donationController = {
   
@@ -136,12 +139,53 @@ export const donationController = {
 
       await claimRequest.save();
 
-      // Update donation status
+      // Generate verification code and QR
+      const verificationCode = generateVerificationCode();
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const verificationUrl = `${frontendUrl}/verify/${verificationCode}`;
+      const qrCodeDataUrl = await generateQRCode(verificationUrl);
+
+      // Update donation status with verification code
       donation.status = 'claimed';
       donation.claimedBy = ngoId;
       donation.claimedByName = ngoName;
       donation.claimedAt = new Date();
+      donation.verificationCode = verificationCode;
       await donation.save();
+
+      // Get donor info for email
+      const donor = await User.findById(donation.donorId);
+      if (donor && donor.email) {
+        // Send email with QR code (non-blocking)
+        sendClaimNotificationEmail(
+          donor.email,
+          donor.displayName,
+          ngoName,
+          donation.title,
+          qrCodeDataUrl,
+          verificationCode
+        ).then(result => {
+          if (result.success) {
+            console.log(`📧 Email sent to donor ${donor.email}`);
+          } else {
+            console.warn(`⚠️ Email failed for ${donor.email}:`, result.error);
+          }
+        });
+      }
+
+      // Emit socket event for real-time notification
+      const io = req.app.get('io');
+      const onlineUsers = req.app.get('onlineUsers');
+      if (io && onlineUsers) {
+        const donorSocketId = onlineUsers.get(donation.donorId.toString());
+        if (donorSocketId) {
+          io.to(donorSocketId).emit('donation-claimed', {
+            donationId: donation._id,
+            ngoName,
+            donationTitle: donation.title
+          });
+        }
+      }
 
       console.log(`✅ Donation ${donationId} claimed successfully by NGO ${ngoName}`);
 
