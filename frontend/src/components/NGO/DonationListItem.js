@@ -1,7 +1,7 @@
-import { Clock, MapPin, Package, Navigation, CheckCircle, AlertCircle, Camera } from 'lucide-react';
+import { Clock, MapPin, Package, Navigation, CheckCircle, AlertCircle, Camera, MessageCircle, Video } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export const DonationListItem = ({ donation, onClaim, onViewRoute }) => {
+export const DonationListItem = ({ donation, onClaim, onViewRoute, unreadCount = 0, onChat, onVideoCall }) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
@@ -176,29 +176,56 @@ export const DonationListItem = ({ donation, onClaim, onViewRoute }) => {
           </div>
         )}
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <div className="text-xs text-gray-500">
-            Posted {formatDate(donation.createdAt)}
-          </div>
+        <div className="flex flex-col space-y-3 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-gray-500">
+              Posted {formatDate(donation.createdAt)}
+            </div>
 
-          <div className="flex space-x-2">
-            <button
-              onClick={() => onViewRoute(donation)}
-              className="flex items-center space-x-1 px-3 py-1 text-sm text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
-            >
-              <Navigation className="h-4 w-4" />
-              <span>Directions</span>
-            </button>
-
-            {donation.status === 'available' && (
+            <div className="flex space-x-2">
               <button
-                onClick={() => onClaim(donation)}
-                className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+                onClick={() => onViewRoute(donation)}
+                className="flex items-center space-x-1 px-3 py-1 text-sm text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors shadow-sm active:scale-95"
               >
-                Claim Donation
+                <Navigation className="h-4 w-4" />
+                <span>Directions</span>
               </button>
-            )}
+
+              {donation.status === 'available' && (
+                <button
+                  onClick={() => onClaim(donation)}
+                  className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors shadow-premium active:scale-95"
+                >
+                  Claim Donation
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Communication Sector - Built-in */}
+          {donation.status === 'claimed' && (
+            <div className="flex space-x-3 pt-2">
+              <button
+                onClick={() => onChat && onChat(donation)}
+                className="flex-1 flex items-center justify-center space-x-2 bg-slate-50 text-slate-700 py-3 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-all text-[10px] font-black uppercase tracking-tighter relative group shadow-sm active:scale-95 border border-slate-100"
+              >
+                <MessageCircle className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                <span>Quick Chat</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-[10px] font-bold text-white shadow-md animate-subtle-pulse ring-2 ring-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => onVideoCall && onVideoCall(donation)}
+                className="flex-1 flex items-center justify-center space-x-2 bg-slate-50 text-slate-700 py-3 rounded-xl hover:bg-purple-50 hover:text-purple-700 transition-all text-[10px] font-black uppercase tracking-tighter group shadow-sm active:scale-95 border border-slate-100"
+              >
+                <Video className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                <span>Video Call</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Debug info */}

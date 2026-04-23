@@ -128,134 +128,145 @@ export const DonorDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Navbar title="Donor Dashboard" />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Emergency Alerts Banner */}
-        <AlertBanner />
+        <div className="mb-8 transform transition-all hover:scale-[1.01]">
+          <AlertBanner />
+        </div>
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6 animate-fade-in">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Donor Dashboard</h1>
-            <p className="text-gray-600 mt-2">Manage your food donations and track their status</p>
-          </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center space-x-2 bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-          </button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Package className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Donations</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              </div>
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="h-1 bg-primary-500 w-12 rounded-full"></div>
+              <span className="text-primary-600 font-bold uppercase tracking-widest text-xs">Overview</span>
             </div>
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Welcome, {user?.displayName || 'Donor'}</h1>
+            <p className="text-slate-500 mt-2 font-medium max-w-lg">
+              Manage your surplus food donations and track their impact in real-time.
+            </p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Clock className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Available</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.available}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Claimed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.claimed}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Package className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
-              </div>
-            </div>
+          
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="btn-secondary px-5 py-3 rounded-2xl flex items-center shadow-sm"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="font-bold text-sm">{refreshing ? 'Syncing...' : 'Sync Data'}</span>
+            </button>
+            <button
+              onClick={() => setShowPostForm(true)}
+              className="btn-primary px-6 py-3 rounded-2xl flex items-center shadow-premium"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              <span className="font-bold">Post Surplus Food</span>
+            </button>
           </div>
         </div>
 
-        {/* Post Food Button */}
-        <div className="mb-8">
-          <button
-            onClick={() => setShowPostForm(true)}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 flex items-center space-x-2 transition-colors shadow-md hover:shadow-lg"
-          >
-            <Plus className="h-5 w-5" />
-            <span>Post Surplus Food</span>
-          </button>
+        {/* Stats Cards - Premium Redesign */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 animate-slide-up">
+          <div className="card-premium p-6 group hover:translate-y-[-4px]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                <Package className="h-6 w-6" />
+              </div>
+              <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">Lifetime</span>
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">Total Donations</p>
+            <div className="flex items-end space-x-2 mt-1">
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.total}</p>
+              <span className="text-xs text-slate-400 font-medium pb-1 uppercase">Posts</span>
+            </div>
+          </div>
+
+          <div className="card-premium p-6 group hover:translate-y-[-4px]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                <Clock className="h-6 w-6" />
+              </div>
+              <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">Active</span>
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">Available Now</p>
+            <div className="flex items-end space-x-2 mt-1">
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.available}</p>
+              <span className="text-xs text-slate-400 font-medium pb-1 uppercase">Open</span>
+            </div>
+          </div>
+
+          <div className="card-premium p-6 group hover:translate-y-[-4px]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-all duration-300">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+              <span className="bg-orange-50 text-orange-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">In Progress</span>
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">Claimed by NGO</p>
+            <div className="flex items-end space-x-2 mt-1">
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.claimed}</p>
+              <span className="text-xs text-slate-400 font-medium pb-1 uppercase">Active</span>
+            </div>
+          </div>
+
+          <div className="card-premium p-6 group hover:translate-y-[-4px]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                <Package className="h-6 w-6" />
+              </div>
+              <span className="bg-purple-50 text-purple-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">Completed</span>
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">Impact Made</p>
+            <div className="flex items-end space-x-2 mt-1">
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.completed}</p>
+              <span className="text-xs text-slate-400 font-medium pb-1 uppercase">Picked up</span>
+            </div>
+          </div>
         </div>
 
-        {/* Donations List */}
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-900">Your Food Donations</h2>
-            <span className="text-sm text-gray-600">
-              {donations.length} donation{donations.length !== 1 ? 's' : ''}
-            </span>
+        {/* Donations List Section */}
+        <div className="space-y-8">
+          <div className="flex justify-between items-center border-b border-slate-200 pb-6">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-2xl font-black text-slate-900">Your Food Donations</h2>
+              <div className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-wider">
+                {donations.length} RECORDS
+              </div>
+            </div>
           </div>
           
           {donations.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow">
-              <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">No donations yet</h3>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Start making a difference by posting your first food donation.
+            <div className="text-center py-24 bg-white rounded-3xl border-2 border-dashed border-slate-200 animate-fade-in shadow-premium">
+              <div className="w-24 h-24 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Package className="h-10 w-10" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">No donations found</h3>
+              <p className="text-slate-500 mb-8 max-w-sm mx-auto font-medium">
+                You haven't posted any food donations yet. Start making a difference today!
               </p>
               <button
                 onClick={() => setShowPostForm(true)}
-                className="bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors shadow-md"
+                className="btn-primary px-8 py-4 rounded-2xl shadow-premium inline-flex items-center"
               >
-                Post Your First Donation
+                <Plus className="h-5 w-5 mr-2" />
+                <span className="font-bold">Post Your First Donation</span>
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {donations.map((donation) => (
-                <div key={donation._id} className="relative">
-                  <DonationCard 
-                    donation={donation}
-                    onUpdate={fetchDonations}
-                  />
-                  {/* Communication buttons for claimed donations */}
-                  {donation.status === 'claimed' && (
-                    <div className="mt-2 flex space-x-2">
-                      <button
-                        onClick={() => setChatDonation(donation)}
-                        className="flex-1 flex items-center justify-center space-x-1 bg-blue-50 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium relative"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        <span>Chat</span>
-                        <Badge 
-                          count={getUnreadCount(donation._id)} 
-                          className="absolute -top-1 -right-1"
-                        />
-                      </button>
-                      <button
-                        onClick={() => handleVideoCall(donation)}
-                        className="flex-1 flex items-center justify-center space-x-1 bg-purple-50 text-purple-700 py-2 px-3 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
-                      >
-                        <Video className="h-4 w-4" />
-                        <span>Video</span>
-                      </button>
-                    </div>
-                  )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {donations.map((donation, index) => (
+                <div key={donation._id} className="group animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                    <DonationCard 
+                      donation={donation}
+                      onUpdate={fetchDonations}
+                      unreadCount={getUnreadCount(donation._id)}
+                      onChat={setChatDonation}
+                      onVideoCall={handleVideoCall}
+                    />
                 </div>
               ))}
             </div>
@@ -265,20 +276,28 @@ export const DonorDashboard = () => {
 
       {/* Post Food Modal */}
       {showPostForm && (
-        <PostFoodForm
-          onClose={() => setShowPostForm(false)}
-          onSuccess={handlePostSuccess}
-        />
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 sm:p-6">
+          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-premium-hover animate-scale-in">
+            <PostFoodForm
+              onClose={() => setShowPostForm(false)}
+              onSuccess={handlePostSuccess}
+            />
+          </div>
+        </div>
       )}
 
       {/* Chat Modal */}
       {chatDonation && (
-        <ChatWindow
-          donation={chatDonation}
-          otherPartyName={chatDonation.claimedByName || 'NGO'}
-          onClose={() => setChatDonation(null)}
-        />
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-hidden">
+          <div className="w-full max-w-lg h-[90vh] sm:h-[80vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-premium-hover flex flex-col animate-slide-up overflow-hidden">
+            <ChatWindow
+              donation={chatDonation}
+              otherPartyName={chatDonation.claimedByName || 'NGO'}
+              onClose={() => setChatDonation(null)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
-};
+};

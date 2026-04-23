@@ -98,127 +98,170 @@ export const EmergencyAlertForm = ({ onClose, onSuccess, userLocation }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <AlertTriangle className="h-6 w-6" />
-            <h3 className="font-semibold text-lg">Post Emergency Alert</h3>
+    <div className="fixed inset-0 z-[110] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fade-in overflow-y-auto">
+      <div className="bg-white rounded-[2.5rem] shadow-premium-hover max-w-lg w-full animate-scale-in relative overflow-hidden border border-slate-100 my-auto">
+        {/* Urgent Decorative Bar */}
+        <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-red-600 via-orange-500 to-red-700"></div>
+
+        <div className="flex items-center justify-between p-8 border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-md z-10">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 animate-pulse">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <div>
+              <span className="text-red-600 font-bold uppercase tracking-widest text-[10px]">Priority Broadcast</span>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Emergency Alert</h3>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full">
-            <X className="h-5 w-5" />
+          <button
+            onClick={onClose}
+            className="p-3 hover:bg-slate-100 rounded-2xl transition-all text-slate-400 hover:text-slate-900 active:scale-95"
+            disabled={loading}
+          >
+            <X className="h-6 w-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Alert Title *</label>
+        <form onSubmit={handleSubmit} className="p-8 space-y-7">
+          <div className="space-y-2">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+              Broadcast Title
+            </label>
             <input
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="e.g., Urgent food needed in Andheri"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="e.g., Immediate Food Rescue Needed in Sector 7"
+              className="input-modern border-red-100 focus:ring-red-500/20 focus:border-red-500"
               disabled={loading}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+          <div className="space-y-2">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+              Mission Description
+            </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               rows={3}
-              placeholder="Describe the situation and what kind of food is needed..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="Detail the urgency, estimated volume, and type of food required..."
+              className="input-modern resize-none border-red-50 border-red-100 focus:ring-red-500/20 focus:border-red-500"
               disabled={loading}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Affected Area *</label>
-              <input
-                name="area"
-                value={formData.area}
-                onChange={handleChange}
-                placeholder="e.g., Andheri West"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                disabled={loading}
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+                Affected Hub
+              </label>
+              <div className="relative">
+                <input
+                  name="area"
+                  value={formData.area}
+                  onChange={handleChange}
+                  placeholder="e.g., Slum Area A"
+                  className="input-modern pl-10"
+                  disabled={loading}
+                />
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+            <div className="space-y-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+                Severity Level
+              </label>
               <select
                 name="severity"
                 value={formData.severity}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="input-modern border-red-100 cursor-pointer appearance-none"
                 disabled={loading}
               >
-                <option value="critical">🔴 Critical</option>
-                <option value="high">🟠 High</option>
-                <option value="medium">🟡 Medium</option>
+                <option value="critical">🔴 Critical Response</option>
+                <option value="high">🟠 High Urgency</option>
+                <option value="medium">🟡 Medium Concern</option>
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">People Affected (approx.)</label>
-            <div className="flex items-center space-x-3">
-              <Users className="h-5 w-5 text-gray-400" />
+          <div className="space-y-2">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+              Expected Beneficiaries
+            </label>
+            <div className="relative group">
               <input
                 type="number"
                 name="peopleAffected"
                 value={formData.peopleAffected}
                 onChange={handleChange}
                 min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="input-modern pl-10"
                 disabled={loading}
               />
+              <Users className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
-            <div className="flex space-x-2">
-              <input
-                value={formData.location.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, address: e.target.value } }))}
-                placeholder="Enter affected area address"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                disabled={loading}
-              />
+          <div className="space-y-2">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+              Rescue Site GPS
+            </label>
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+              <div className="relative flex-1">
+                <input
+                  value={formData.location.address}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, address: e.target.value } }))}
+                  placeholder="Identify landing site address"
+                  className="input-modern pl-10"
+                  disabled={loading}
+                />
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-400" />
+              </div>
               <button
                 type="button"
                 onClick={getCurrentLocation}
                 disabled={gettingLocation}
-                className="bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                className="px-6 py-4 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2 font-bold text-xs uppercase tracking-widest"
               >
                 {gettingLocation ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
                 ) : (
                   <Navigation className="h-4 w-4" />
                 )}
+                <span>Site GPS</span>
               </button>
             </div>
             {formData.location.coordinates.lat > 0 && (
-              <p className="text-xs text-green-600 mt-1">✅ Location set</p>
+              <div className="flex items-center space-x-2 mt-2 ml-1 text-[10px] font-black text-emerald-600 uppercase tracking-tighter animate-fade-in">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                <span>Signal Locked: {formData.location.coordinates.lat.toFixed(4)}, {formData.location.coordinates.lng.toFixed(4)}</span>
+              </div>
             )}
           </div>
 
-          <div className="flex space-x-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-xl hover:bg-gray-300 transition-colors" disabled={loading}>
+          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 pt-4 pb-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-4 px-6 border border-slate-200 text-slate-400 font-bold rounded-2xl hover:bg-slate-50 hover:text-slate-900 transition-all uppercase tracking-widest text-xs"
+              disabled={loading}
+            >
               Cancel
             </button>
-            <button type="submit" disabled={loading} className="flex-1 bg-red-600 text-white py-3 rounded-xl hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center justify-center">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-[1.5] py-4 px-8 bg-red-600 text-white rounded-2xl shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center font-black uppercase tracking-widest text-xs"
+            >
               {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
               ) : (
                 <>
-                  <AlertTriangle className="h-5 w-5 mr-2" />
-                  Post Alert
+                  <AlertTriangle className="h-4 w-4 mr-3" />
+                  INITIATE EMERGENCY BROADCAST
                 </>
               )}
             </button>
@@ -228,3 +271,4 @@ export const EmergencyAlertForm = ({ onClose, onSuccess, userLocation }) => {
     </div>
   );
 };
+

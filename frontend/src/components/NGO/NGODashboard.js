@@ -122,6 +122,22 @@ export const NGODashboard = () => {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [showEmergencyForm, setShowEmergencyForm] = useState(false);
 
+  const handleVideoCall = async (donation) => {
+    try {
+      const res = await callsAPI.requestCall(donation._id);
+      const socket = getSocket();
+      if (socket) {
+        socket.emit('call-request', {
+          receiverId: donation.donorId?._id || donation.donorId,
+          callRequest: res.data.callRequest
+        });
+      }
+      toast.success('Video call request sent!');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to request call');
+    }
+  };
+
   // Distance calculation function (Haversine formula)
   const calculateDistance = (lat1, lng1, lat2, lng2) => {
     const R = 6371; // Earth's radius in kilometers
@@ -573,71 +589,48 @@ export const NGODashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar title="NGO Dashboard" />
 
+      {/* Global Notification Banner */}
       {notification && (
-        <div className="fixed top-16 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-50 animate-pulse">
-          <div className="flex items-center">
-            <Package className="h-4 w-4 mr-2" />
-            {notification}
-            <button
-              onClick={() => setNotification(null)}
-              className="ml-4 font-bold hover:text-gray-200"
-            >
-              ×
-            </button>
+        <div className="fixed top-24 right-6 bg-primary-600 text-white px-6 py-4 rounded-2xl shadow-premium z-[60] animate-slide-up flex items-center space-x-4 border border-primary-500/20 backdrop-blur-md">
+          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+            <Package className="h-5 w-5" />
           </div>
+          <div className="flex-1 pr-6">
+            <p className="font-bold text-sm leading-tight">{notification}</p>
+          </div>
+          <button
+            onClick={() => setNotification(null)}
+            className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <span className="sr-only">Close</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Package className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Available</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.available}</p>
-              </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6 animate-fade-in">
+          <div>
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="h-1 bg-primary-500 w-12 rounded-full"></div>
+              <span className="text-primary-600 font-bold uppercase tracking-widest text-xs">Mission Center</span>
             </div>
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Active Operations</h1>
+            <p className="text-slate-500 mt-2 font-medium max-w-lg">
+              Manage food rescues, track pickup routes, and coordinate with donors efficiently.
+            </p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">My Claims</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.claimed}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Heart className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Navigation className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Impact</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-          <div className="flex flex-wrap gap-2">
+          
+          <div className="flex items-center space-x-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
             <button
               onClick={() => setViewMode('map')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
                 viewMode === 'map'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ? 'bg-slate-900 text-white shadow-lg'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               <Map className="h-4 w-4" />
@@ -645,110 +638,155 @@ export const NGODashboard = () => {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
                 viewMode === 'list'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ? 'bg-slate-900 text-white shadow-lg'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               <List className="h-4 w-4" />
               <span>List View</span>
             </button>
+          </div>
+        </div>
+
+        {/* Stats Cards - Premium Set */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 animate-slide-up">
+          <div className="card-premium p-6 group hover:translate-y-[-4px]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                <Package className="h-6 w-6" />
+              </div>
+              <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">Nearby</span>
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">Available Now</p>
+            <div className="flex items-end space-x-2 mt-1">
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.available}</p>
+              <span className="text-xs text-slate-400 font-medium pb-1 uppercase">Pins</span>
+            </div>
+          </div>
+
+          <div className="card-premium p-6 group hover:translate-y-[-4px]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+              <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">Active</span>
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">My Claims</p>
+            <div className="flex items-end space-x-2 mt-1">
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.claimed}</p>
+              <span className="text-xs text-slate-400 font-medium pb-1 uppercase">Claims</span>
+            </div>
+          </div>
+
+          <div className="card-premium p-6 group hover:translate-y-[-4px]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                <Heart className="h-6 w-6" />
+              </div>
+              <span className="bg-purple-50 text-purple-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">History</span>
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">Fulfilled Donations</p>
+            <div className="flex items-end space-x-2 mt-1">
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.completed}</p>
+              <span className="text-xs text-slate-400 font-medium pb-1 uppercase">Jobs</span>
+            </div>
+          </div>
+
+          <div className="card-premium p-6 group hover:translate-y-[-4px]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-all duration-300">
+                <Navigation className="h-6 w-6" />
+              </div>
+              <span className="bg-slate-50 text-slate-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">Overall</span>
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">Total Impact</p>
+            <div className="flex items-end space-x-2 mt-1">
+              <p className="text-3xl font-black text-slate-900 leading-none">{stats.total}</p>
+              <span className="text-xs text-slate-400 font-medium pb-1 uppercase">Served</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Controls Bar */}
+        <div className="bg-white/70 backdrop-blur-lg sticky top-24 z-40 p-4 -mx-4 sm:mx-0 sm:p-4 rounded-3xl border border-white/50 shadow-premium mb-8 flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:justify-between animate-fade-in group">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={handleStartMultiPickup}
               disabled={stats.available === 0}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-6 py-2.5 bg-primary-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md active:scale-95 flex items-center"
             >
-              <Route className="h-4 w-4" />
-              <span>Multi Pickup</span>
-              {stats.available > 0 && (
-                <span className="bg-blue-500 text-xs px-2 py-1 rounded-full">{stats.available}</span>
-              )}
+              <Route className="h-4 w-4 mr-2" />
+              Start Route
             </button>
-            {user && user.role === 'ngo' && (
-              <button
-                onClick={() => setShowLocationSetup(true)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  user.location && user.location.coordinates
-                    ? 'bg-purple-600 text-white hover:bg-purple-700'
-                    : 'bg-yellow-600 text-white hover:bg-yellow-700'
-                }`}
-              >
-                <MapPin className="h-4 w-4" />
-                <span>
-                  {user.location && user.location.coordinates ? 'Update Location' : 'Set Location'}
-                </span>
-              </button>
-            )}
-            {user && user.role === 'ngo' && user.location && user.location.coordinates && (
-              <button
-                onClick={() => setShowRadiusUpdate(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
-              >
-                <Settings className="h-4 w-4" />
-                <span>Radius ({currentRadius}km)</span>
-              </button>
-            )}
-            {/* Emergency Alert Button */}
-            <button
-              onClick={() => setShowEmergencyForm(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
-            >
-              <AlertTriangle className="h-4 w-4" />
-              <span>Emergency Alert</span>
-            </button>
-            {/* QR Scanner Button */}
+            
             <button
               onClick={() => setShowQRScanner(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+              className="p-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all shadow-md active:scale-95"
+              title="Verify with QR"
             >
-              <QrCode className="h-4 w-4" />
-              <span>Scan QR</span>
+              <QrCode className="h-5 w-5" />
             </button>
+
+            <div className="h-8 w-[1px] bg-slate-200 mx-2 hidden sm:block"></div>
+
+            <button
+              onClick={() => setShowEmergencyForm(true)}
+              className="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-100 transition-all flex items-center"
+            >
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Emergency
+            </button>
+
+            {user?.role === 'ngo' && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowLocationSetup(true)}
+                  className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center ${
+                    user.location && user.location.coordinates
+                      ? 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                      : 'bg-amber-50 text-amber-600 hover:bg-amber-100 animate-subtle-pulse'
+                  }`}
+                >
+                  <MapPin className="h-4 w-4 mr-2" />
+                  {user.location && user.location.coordinates ? 'Update GPS' : 'Set GPS'}
+                </button>
+                
+                {user.location?.coordinates && (
+                  <button
+                    onClick={() => setShowRadiusUpdate(true)}
+                    className="px-4 py-2.5 bg-slate-50 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all flex items-center"
+                  >
+                    <Settings className="h-4 w-4 mr-2 text-slate-400" />
+                    {currentRadius}km
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center space-x-4">
-            {/* Auto-refresh toggle */}
-            <button
-              onClick={toggleAutoRefresh}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                autoRefresh 
-                  ? 'bg-green-100 text-green-700 border border-green-300' 
-                  : 'bg-gray-100 text-gray-700 border border-gray-300'
-              }`}
-            >
-              <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
-              <span className="text-sm">Auto</span>
-            </button>
+          <div className="flex items-center space-x-4 border-t lg:border-t-0 pt-4 lg:pt-0">
+            {/* Auto-refresh indicator */}
+            <div className="hidden sm:flex items-center space-x-2 mr-2">
+              <div className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {autoRefresh ? 'Monitoring' : 'Paused'}
+              </span>
+            </div>
 
-            {/* Manual refresh */}
             <button
               onClick={handleManualRefresh}
               disabled={refreshing}
-              className="flex items-center space-x-2 px-3 py-2 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm group-hover:rotate-180 duration-500"
             >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="text-sm">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+              <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
 
-            {usingLocationFiltering && (
-              <div className="text-sm text-gray-600 bg-green-50 px-3 py-2 rounded-lg">
-                <span className="font-medium">📍 Location-based filtering active</span>
-                <br />
-                <span className="text-xs">Showing donations within {currentRadius}km radius</span>
-              </div>
-            )}
-            {user?.role === 'ngo' && !usingLocationFiltering && (
-              <div className="text-sm text-gray-600 bg-yellow-50 px-3 py-2 rounded-lg">
-                <span className="font-medium">📍 Set your location</span>
-                <br />
-                <span className="text-xs">To see nearby donations, set your NGO location</span>
-              </div>
-            )}
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+              className="pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 appearance-none shadow-sm cursor-pointer"
             >
               <option value="all">All Available</option>
               <option value="available">Available Now</option>
@@ -758,33 +796,82 @@ export const NGODashboard = () => {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="bg-white rounded-lg shadow">
+        {/* Location-based status mini-banner */}
+        {user?.role === 'ngo' && (
+          <div className={`mb-8 px-5 py-3 rounded-2xl flex items-center justify-between animate-fade-in border ${
+            usingLocationFiltering 
+              ? 'bg-emerald-50/50 border-emerald-100 text-emerald-800' 
+              : 'bg-amber-50/50 border-amber-100 text-amber-800'
+          }`}>
+            <div className="flex items-center space-x-3">
+              {usingLocationFiltering ? (
+                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                  <Navigation className="h-4 w-4" />
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white">
+                  <MapPin className="h-4 w-4" />
+                </div>
+              )}
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest leading-none mb-1">
+                  {usingLocationFiltering ? 'Location Active' : 'Action Required'}
+                </p>
+                <p className="text-[10px] sm:text-xs font-medium opacity-80">
+                  {usingLocationFiltering 
+                    ? `Showing results within ${currentRadius}km of your verified location.`
+                    : 'Your location is not set. Donors cannot see you and filters are restricted.'
+                  }
+                </p>
+              </div>
+            </div>
+            {!usingLocationFiltering && (
+              <button 
+                onClick={getCurrentLocation}
+                className="px-4 py-1.5 bg-amber-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-700 transition-all shadow-sm"
+              >
+                Set Now
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Main Workspace */}
+        <div className="bg-white rounded-[2rem] shadow-premium overflow-hidden border border-slate-100 animate-slide-up">
           {viewMode === 'map' ? (
-            <div className="p-6">
+            <div className="relative group/map">
               <FoodMap
                 donations={filteredDonations}
                 onMarkerClick={setSelectedDonation}
                 selectedDonation={selectedDonation}
               />
+              
+              {/* Refined selected donation card on map */}
               {selectedDonation && (
-                <div className="mt-2 p-2 bg-gray-50 rounded-md max-w-xs">
-                  <h3 className="font-semibold text-base mb-1 truncate">{selectedDonation.title}</h3>
-                  <p className="text-gray-600 mb-1 text-sm truncate">{selectedDonation.description}</p>
+                <div className="absolute top-6 left-6 right-6 sm:left-auto sm:right-6 sm:w-80 bg-white/95 backdrop-blur-md p-5 rounded-3xl shadow-premium border border-white animate-scale-in z-30">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-extrabold text-slate-900 leading-tight">{selectedDonation.title}</h3>
+                    <button onClick={() => setSelectedDonation(null)} className="text-slate-400 hover:text-slate-600">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-4 line-clamp-2 leading-relaxed">{selectedDonation.description}</p>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleViewRoute(selectedDonation)}
-                      className="flex items-center space-x-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                      className="flex-1 flex items-center justify-center space-x-2 px-3 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all"
                     >
                       <Navigation className="h-3 w-3" />
-                      <span>Get Directions</span>
+                      <span>Directions</span>
                     </button>
                     {selectedDonation.status === 'available' && (
                       <button
                         onClick={() => handleClaimDonation(selectedDonation)}
-                        className="px-2 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+                        className="flex-1 px-3 py-2.5 bg-primary-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-600 transition-all"
                       >
-                        Claim Donation
+                        Claim Now
                       </button>
                     )}
                   </div>
@@ -792,82 +879,52 @@ export const NGODashboard = () => {
               )}
             </div>
           ) : (
-            <div className="p-6">
+            <div className="p-8">
               {filteredDonations.length === 0 ? (
-                <div className="text-center py-12">
-                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No donations found</h3>
-                  <p className="text-gray-600 mb-4">
+                <div className="text-center py-20 animate-fade-in">
+                  <div className="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Package className="h-10 w-10" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-2">No missions found</h3>
+                  <p className="text-slate-500 mb-8 max-w-sm mx-auto font-medium">
                     {usingLocationFiltering 
-                      ? `No donations found within your ${currentRadius}km operational radius.`
-                      : 'Try adjusting your filters or check back later.'
+                      ? `No donations found within your ${currentRadius}km rescue zone.`
+                      : 'Adjust your filters or set your location to start rescues.'
                     }
                   </p>
-                  <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-center gap-4">
                     {usingLocationFiltering && (
                       <button
                         onClick={() => setShowRadiusUpdate(true)}
-                        className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                        className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm tracking-tight hover:bg-slate-800 transition-all shadow-md"
                       >
-                        Increase Operational Radius
+                        Expand Search Radius
                       </button>
                     )}
                     {!usingLocationFiltering && user?.role === 'ngo' && (
                       <button
                         onClick={() => setShowLocationSetup(true)}
-                        className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
+                        className="px-6 py-3 bg-amber-600 text-white rounded-2xl font-bold text-sm tracking-tight hover:bg-amber-700 transition-all shadow-md"
                       >
-                        Set Location to See Nearby Donations
+                        Set NGO Base Location
                       </button>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredDonations.map((donation) => (
-                    <div key={donation._id}>
-                      <DonationListItem
-                        donation={donation}
-                        onClaim={handleClaimDonation}
-                        onViewRoute={handleViewRoute}
-                      />
-                      {/* Chat & Call buttons for claimed donations */}
-                      {donation.status === 'claimed' && (
-                        <div className="mt-2 flex space-x-2">
-                          <button
-                            onClick={() => setChatDonation(donation)}
-                            className="flex-1 flex items-center justify-center space-x-1 bg-blue-50 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium relative"
-                          >
-                            <MessageCircle className="h-4 w-4" />
-                            <span>Chat with Donor</span>
-                            <Badge 
-                              count={getUnreadCount(donation._id)} 
-                              className="absolute -top-1 -right-1"
-                            />
-                          </button>
-                          <button
-                            onClick={async () => {
-                              try {
-                                const res = await callsAPI.requestCall(donation._id);
-                                const socket = getSocket();
-                                if (socket) {
-                                  socket.emit('call-request', {
-                                    receiverId: donation.donorId?._id || donation.donorId,
-                                    callRequest: res.data.callRequest
-                                  });
-                                }
-                                toast.success('Video call request sent!');
-                              } catch (err) {
-                                toast.error(err.response?.data?.error || 'Failed to request call');
-                              }
-                            }}
-                            className="flex-1 flex items-center justify-center space-x-1 bg-purple-50 text-purple-700 py-2 px-3 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
-                          >
-                            <Video className="h-4 w-4" />
-                            <span>Video Call</span>
-                          </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredDonations.map((donation, index) => (
+                    <div key={donation._id} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                        <div className="transform transition-all duration-300 group-hover:scale-[1.02]">
+                          <DonationListItem
+                            donation={donation}
+                            onClaim={handleClaimDonation}
+                            onViewRoute={handleViewRoute}
+                            unreadCount={getUnreadCount(donation._id)}
+                            onChat={setChatDonation}
+                            onVideoCall={handleVideoCall}
+                          />
                         </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -877,96 +934,118 @@ export const NGODashboard = () => {
         </div>
       </div>
 
-      {/* Multi Location Selector Modal */}
-      {showMultiSelector && (
-        <MultiLocationSelector
-          donations={filteredDonations.filter(d => d.status === 'available' && new Date(d.expiryTime) > new Date())}
-          onStartRoute={handleStartRoute}
-          onClose={() => setShowMultiSelector(false)}
-        />
-      )}
-
-      {/* Route Tracker */}
-      {showRouteTracker && (
-        <RouteTracker
-          donations={selectedRouteData}
-          onComplete={handleRouteComplete}
-          onClose={() => setShowRouteTracker(false)}
-        />
-      )}
-
-      {/* Location Setup Modal */}
+      {/* Modern Modal Overlay System */}
+      {/* Location Setup */}
       {showLocationSetup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {user?.location?.coordinates ? 'Update Your NGO Location' : 'Set Your NGO Location'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {user?.location?.coordinates 
-                ? 'Update your location to see the most relevant food donations in your area.'
-                : 'To see nearby food donations, we need to know your NGO\'s location. This will help us show you donations within your operational radius.'
-              }
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in text-center">
+          <div className="bg-white rounded-[2.5rem] p-10 max-w-md w-full shadow-premium-hover animate-scale-in relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-400 to-emerald-600"></div>
+            <div className="w-16 h-16 bg-primary-100 text-primary-600 rounded-3xl flex items-center justify-center mb-6 mx-auto">
+              <MapPin className="h-8 w-8" />
+            </div>
+            <h3 className="text-2xl font-extrabold text-slate-900 mb-2">Base Operations</h3>
+            <p className="text-slate-500 font-medium mb-8 leading-relaxed">
+              Set your NGO base location to see real-time available donations within your rescue zone.
             </p>
-            <div className="flex space-x-3">
+            <div className="flex flex-col space-y-3">
               <button
                 onClick={getCurrentLocation}
-                className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                className="btn-primary py-4 rounded-2xl flex items-center justify-center group"
               >
-                Use Current Location
+                <Navigation className="h-5 w-5 mr-3 group-hover:translate-x-1 transition-transform" />
+                <span>Sync Current GPS</span>
               </button>
               <button
                 onClick={() => setShowLocationSetup(false)}
-                className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                className="btn-secondary py-4 rounded-2xl text-slate-500 hover:text-slate-900"
               >
-                {user?.location?.coordinates ? 'Cancel' : 'Skip for Now'}
+                {user?.location?.coordinates ? 'Cancel' : 'Continue without Location'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Radius Update Modal */}
+      {/* Route Selector & Other Modals Wrapped in Premium Overlays */}
+      {showMultiSelector && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-10 animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-4xl bg-white rounded-[2rem] shadow-premium overflow-hidden animate-slide-up my-auto">
+            <MultiLocationSelector
+              donations={filteredDonations.filter(d => d.status === 'available' && new Date(d.expiryTime) > new Date())}
+              onStartRoute={handleStartRoute}
+              onClose={() => setShowMultiSelector(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {showRouteTracker && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xl animate-fade-in flex flex-col">
+          <RouteTracker
+            donations={selectedRouteData}
+            onComplete={handleRouteComplete}
+            onClose={() => setShowRouteTracker(false)}
+          />
+        </div>
+      )}
+
       {showRadiusUpdate && (
-        <RadiusUpdateModal
-          isOpen={showRadiusUpdate}
-          onClose={() => setShowRadiusUpdate(false)}
-          currentRadius={currentRadius}
-          onUpdate={handleRadiusUpdate}
-        />
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in">
+          <div className="w-full max-w-sm bg-white rounded-[2rem] shadow-premium-hover animate-scale-in p-2">
+            <RadiusUpdateModal
+              isOpen={showRadiusUpdate}
+              onClose={() => setShowRadiusUpdate(false)}
+              currentRadius={currentRadius}
+              onUpdate={handleRadiusUpdate}
+            />
+          </div>
+        </div>
       )}
 
-      {/* Chat Modal */}
       {chatDonation && (
-        <ChatWindow
-          donation={chatDonation}
-          otherPartyName={chatDonation.donorName || 'Donor'}
-          onClose={() => setChatDonation(null)}
-        />
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-hidden">
+          <div className="w-full max-w-lg h-[90vh] sm:h-[80vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-premium-hover flex flex-col animate-slide-up overflow-hidden">
+            <ChatWindow
+              donation={chatDonation}
+              otherPartyName={chatDonation.donorName || 'Donor'}
+              onClose={() => setChatDonation(null)}
+            />
+          </div>
+        </div>
       )}
 
-      {/* QR Scanner Modal */}
       {showQRScanner && (
-        <QRScanner
-          onClose={() => setShowQRScanner(false)}
-          onVerified={(donation) => {
-            setShowQRScanner(false);
-            fetchAllDonations(false);
-            fetchMyDonations();
-          }}
-        />
+        <div className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-lg flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-premium overflow-hidden animate-scale-in">
+            <QRScanner
+              onClose={() => setShowQRScanner(false)}
+              onVerified={(donation) => {
+                setShowQRScanner(false);
+                fetchAllDonations(false);
+                fetchMyDonations();
+              }}
+            />
+          </div>
+        </div>
       )}
 
-      {/* Emergency Alert Form */}
       {showEmergencyForm && (
-        <EmergencyAlertForm
-          onClose={() => setShowEmergencyForm(false)}
-          onSuccess={() => {
-            setShowEmergencyForm(false);
-          }}
-          userLocation={user?.location}
-        />
+        <div className="fixed inset-0 z-[110] bg-red-900/20 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-premium overflow-hidden animate-scale-in border-t-4 border-red-500">
+            <EmergencyAlertForm
+              onClose={() => setShowEmergencyForm(false)}
+              onSuccess={() => {
+                setShowEmergencyForm(false);
+              }}
+              userLocation={user?.location}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
 };
+
+
+
+

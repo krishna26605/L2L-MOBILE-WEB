@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Clock, MapPin, Package, Edit, Trash2, CheckCircle, AlertCircle, Camera } from 'lucide-react';
+import { Clock, MapPin, Package, Edit, Trash2, CheckCircle, AlertCircle, Camera, MessageCircle, Video } from 'lucide-react';
 import { donationsAPI } from '../../lib/api';
 import toast from 'react-hot-toast';
 
-export const DonationCard = ({ donation, onUpdate }) => {
+export const DonationCard = ({ donation, onUpdate, unreadCount = 0, onChat, onVideoCall }) => {
   const [loading, setLoading] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -310,6 +310,31 @@ export const DonationCard = ({ donation, onUpdate }) => {
             </div>
           )}
         </div>
+
+        {/* NGO Communication Section - Built-in */}
+        {donation.status === 'claimed' && (
+          <div className="mt-4 pt-4 border-t border-slate-100 flex space-x-3">
+            <button
+              onClick={() => onChat && onChat(donation)}
+              className="flex-1 flex items-center justify-center space-x-2 bg-slate-50 text-slate-700 py-3 rounded-2xl hover:bg-primary-50 hover:text-primary-600 transition-all text-xs font-black uppercase tracking-tighter relative group shadow-sm active:scale-95"
+            >
+              <MessageCircle className="h-4 w-4 group-hover:scale-110 transition-transform" />
+              <span>Quick Chat</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-[10px] font-bold text-white shadow-md animate-subtle-pulse ring-2 ring-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => onVideoCall && onVideoCall(donation)}
+              className="flex-1 flex items-center justify-center space-x-2 bg-slate-50 text-slate-700 py-3 rounded-2xl hover:bg-purple-50 hover:text-purple-600 transition-all text-xs font-black uppercase tracking-tighter group shadow-sm active:scale-95"
+            >
+              <Video className="h-4 w-4 group-hover:scale-110 transition-transform" />
+              <span>Video Call</span>
+            </button>
+          </div>
+        )}
 
         {/* ✅ Debug info for development */}
         {process.env.NODE_ENV === 'development' && donation.imageUrl && (
